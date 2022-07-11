@@ -78,10 +78,16 @@ namespace ExamExtract.Services
                             {
                                 if (q.Images == null)
                                 {
-                                    q.Images = new List<string>();
+                                    q.Images = new List<ImageFull>();
                                 }
 
-                                q.Images.Add(img.Path);
+                                var imageFull = new ImageFull
+                                {
+                                    Image = img.Path,
+                                    Width = img.Width,
+                                    Height = img.Height
+                                };
+                                q.Images.Add(imageFull);
                                 breakLoop = true;
                                 break;                                
                             }

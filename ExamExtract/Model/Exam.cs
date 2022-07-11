@@ -16,7 +16,7 @@
         public List<string>? Correct { get; set; }
         public string? Section { get; set; }
         public List<Answers>? Answers { get; set; }
-        public List<string>? Images { get; set; }
+        public List<ImageFull>? Images { get; set; }
     }
 
     public class Answers
@@ -24,5 +24,12 @@
         public int? Id { get; set; }
         public string? Description { get; set; }
         public string? Letter { get; set; }        
+    }
+
+    public class ImageFull
+    {
+        public string Image { get; set; }
+        public int Width { get; set; }
+        public int Height { get; set; }
     }
 }

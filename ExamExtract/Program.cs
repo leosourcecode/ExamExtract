@@ -20,7 +20,7 @@ namespace ExamExtract
             const string outputFolderPath = @"C:\Output";
 
             // Operation
-            const bool isLoad = false;
+            const bool isLoad = true;
 
             /*
              * Setup

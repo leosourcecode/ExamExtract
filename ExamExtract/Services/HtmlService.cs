@@ -44,7 +44,7 @@ namespace ExamExtract.Services
                     foreach (var item in q.Images)
                     {
                         element = elements.Where(s => s.Type == HtmlElements.TagType.Image).FirstOrDefault();
-                        html.AppendLine(element.GetHtmlText().Replace(element.Placeholder, item));
+                        html.AppendLine(element.GetHtmlText().Replace(element.Placeholder, item.Image).Replace(element.Placeholder2, $"{item.Height}").Replace(element.Placeholder3, $"{item.Width}"));
                     }
 
                 if (q.Answers != null)
@@ -100,7 +100,7 @@ namespace ExamExtract.Services
                 foreach (var item in question.Images)
                 {
                     element = elements.Where(s => s.Type == HtmlElements.TagType.Image).FirstOrDefault();
-                    questionHtml.AppendLine(element.GetHtmlText().Replace(element.Placeholder, item));
+                    questionHtml.AppendLine(element.GetHtmlText().Replace(element.Placeholder, item.Image).Replace(element.Placeholder2, $"{item.Height}").Replace(element.Placeholder3, $"{item.Width}"));
                 }
 
             if (question.Answers != null)
