@@ -14,20 +14,23 @@ namespace ExamExtract
             */
 
             // Path to the PDF
-            const string pdfPath = @"C:\Users\LeandroCarliniMingor\Downloads\gratisexam.com-Microsoft.braindumps.AI-900.v2021-04-29.by.mohammed.47q.pdf";
+            const string pdfPath = @"C:\Users\LeandroCarliniMingor\Downloads\gratisexam.com-Microsoft.test4prep.AI-900.v2020-09-07.by.abdullah.25q.pdf";
 
             // Path to the Output folder
             const string outputFolderPath = @"C:\Output";
 
+            // Path to the merged files folder
+            const string mergedFilesPath = @"C:\Output\merge";
+
             // Operation
-            const bool isLoad = true;
+            const FlowEnum flow = FlowEnum.MergeExam;
 
             /*
              * Setup
             */
 
             Console.WriteLine("Starting ......");
-            Console.WriteLine($"Is a Load from JSON? {isLoad}");
+            Console.WriteLine($"Type of flow: {flow.ToString()}");
 
             var folderService = new FolderService();
             var pdfService = new PdfService();
@@ -37,60 +40,77 @@ namespace ExamExtract
             var fileName = Path.GetFileNameWithoutExtension(pdfPath);
             var outputFolder = Path.Combine(outputFolderPath, fileName);
 
-            if (isLoad)
+            switch (flow)
             {
-                Console.WriteLine("Loading Data ......");
-                var jsonData = File.ReadAllText(Path.Combine(outputFolder, $"data.json"));
-                var exams = JsonSerializer.Deserialize<List<Exam>>(jsonData);
+                case FlowEnum.BuildExam:
+                    Console.WriteLine($"File Name: {fileName}");
+                    Console.WriteLine($"Output Folder: {outputFolder}");
+                    Console.WriteLine("Creating folders ......");
+                    folderService.CreateFolderDeleteIfExists(outputFolder);
 
-                Console.WriteLine("Building ExamData ......");
-                var examDatas = new List<ExamData>();
-                foreach (var exam in exams)
-                {
-                    var examData = examService.BuildExamData(exam);
-                    examDatas.Add(examData);
-                }              
+                    Console.WriteLine("Loading PDF ......");
+                    var pdfContent = pdfService.LoadPdf(pdfPath, outputFolder);
 
-                Console.WriteLine("Saving examData.json ......");
-                File.WriteAllText(Path.Combine(outputFolder, $"examData.json"), JsonSerializer.Serialize(examDatas));
+                    Console.WriteLine("Building Exam ......");
+                    var examLoad = examService.BuildExam(pdfContent, fileName);
 
-                Console.WriteLine("Building HTML ......");
-                var html = new StringBuilder();
-                foreach (var exam in exams)
-                {
-                    html.AppendLine(htmlService.BuildHtml(exam));
-                    html.AppendLine();
-                    html.AppendLine();
-                    html.AppendLine();
-                    html.AppendLine("-------------------------");
-                }                
+                    Console.WriteLine("Building HTML ......");
+                    var htmlLoad = htmlService.BuildHtml(examLoad);
 
-                Console.WriteLine("Saving Final.html ......");
-                File.WriteAllText(Path.Combine(outputFolder, $"Final.html"), html.ToString());
-            }
-            else
-            {               
-                Console.WriteLine($"File Name: {fileName}");
-                Console.WriteLine($"Output Folder: {outputFolder}");
-                Console.WriteLine("Creating folders ......");
-                folderService.CreateFolderDeleteIfExists(outputFolder);
+                    Console.WriteLine("Saving data.json ......");
+                    var examsLoad = new List<Exam>();
+                    examsLoad.Add(examLoad);
+                    File.WriteAllText(Path.Combine(outputFolder, $"data.json"), JsonSerializer.Serialize(examsLoad));
 
-                Console.WriteLine("Loading PDF ......");
-                var pdfContent = pdfService.LoadPdf(pdfPath, outputFolder);
+                    Console.WriteLine("Saving Full.html ......");
+                    File.WriteAllText(Path.Combine(outputFolder, $"Full.html"), htmlLoad);
+                    break;
+                case FlowEnum.LoadExam:
+                    Console.WriteLine("Loading Data ......");
+                    var jsonData = File.ReadAllText(Path.Combine(outputFolder, $"data.json"));
+                    var exams = JsonSerializer.Deserialize<List<Exam>>(jsonData);
 
-                Console.WriteLine("Building Exam ......");
-                var exam = examService.BuildExam(pdfContent, fileName);
+                    Console.WriteLine("Building ExamData ......");
+                    var examDatas = new List<ExamData>();
+                    foreach (var exam in exams)
+                    {
+                        var examData = examService.BuildExamData(exam);
+                        examDatas.Add(examData);
+                    }
 
-                Console.WriteLine("Building HTML ......");
-                var html = htmlService.BuildHtml(exam);
+                    Console.WriteLine("Saving examData.json ......");
+                    File.WriteAllText(Path.Combine(outputFolder, $"examData.json"), JsonSerializer.Serialize(examDatas));
 
-                Console.WriteLine("Saving data.json ......");
-                var exams = new List<Exam>();
-                exams.Add(exam);
-                File.WriteAllText(Path.Combine(outputFolder, $"data.json"), JsonSerializer.Serialize(exams));
+                    Console.WriteLine("Building HTML ......");
+                    var html = new StringBuilder();
+                    foreach (var exam in exams)
+                    {
+                        html.AppendLine(htmlService.BuildHtml(exam));
+                        html.AppendLine();
+                        html.AppendLine();
+                        html.AppendLine();
+                        html.AppendLine("-------------------------");
+                    }
 
-                Console.WriteLine("Saving Full.html ......");
-                File.WriteAllText(Path.Combine(outputFolder, $"Full.html"), html);
+                    Console.WriteLine("Saving Final.html ......");
+                    File.WriteAllText(Path.Combine(outputFolder, $"Final.html"), html.ToString());
+                    break;
+                case FlowEnum.MergeExam:
+
+                    var result = new List<ExamData>();
+                    string[] fileEntries = Directory.GetFiles(mergedFilesPath);
+                    foreach (string file in fileEntries)
+                    {
+                        var json = File.ReadAllText(file);
+                        foreach (var i in JsonSerializer.Deserialize<List<ExamData>>(json))
+                        {
+                            result.Add(i);
+                        }
+                    }
+                    File.WriteAllText(Path.Combine(mergedFilesPath, $"examData.json"), JsonSerializer.Serialize(result));
+                    break;
+                default:
+                    break;
             }
 
             Console.WriteLine("Done!");
